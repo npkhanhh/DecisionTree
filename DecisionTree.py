@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
 
@@ -11,8 +13,8 @@ def data_cleaning():
     df.insert(9, 'SAFE', df['SAFETY'].map({'low': 0, 'med': 1, 'high': 2}).astype(int))
     df.insert(11, 'DECISION', df['CLASS'].map({'unacc': 0, 'acc': 1, 'good': 2, 'vgood': 3}).astype(int))
 
-    a = df['BUYING'].unique()
-    print type(a)
+    a = df[df['BUY_PRICE'] > 2].shape[0]
+    print a
 
 data_cleaning()
 
