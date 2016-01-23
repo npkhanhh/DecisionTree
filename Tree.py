@@ -15,6 +15,7 @@ class DecisionTree(Tree):
     def fit(self, df):
         for a in self.list_attributes:
             values = df[a].unique()
+            max = 0
             for c in values:
                 df['temp'] = 1 if df[a]<c else 2
                 sum = 0
@@ -29,4 +30,5 @@ class DecisionTree(Tree):
                     sum += l
                 sum = -sum
                 sum /= total_count
-
+                if sum > max:
+                    max = sum
