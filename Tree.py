@@ -13,9 +13,11 @@ class DecisionTree(Tree):
 
     # need more optimization
     def fit(self, df):
-        for a in self.list_attributes:
+        list_RMI = []
+        for a in list(df):
             values = df[a].unique()
             max_RMI = 0
+            max_c = values[0]
             for c in values:
                 df['temp'] = 1 if df[a]<c else 2
                 sum = 0
@@ -30,5 +32,8 @@ class DecisionTree(Tree):
                     sum += l
                 sum = -sum
                 sum /= total_count
-                if sum > max:
+                if sum > max_RMI:
                     max_RMI = sum
+                    max_c = c
+            list_RMI.append([max_RMI, a, max_c])
+        list_RMI.sort(key=lambda x: x[0], reverse=True)
