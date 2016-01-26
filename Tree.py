@@ -1,25 +1,28 @@
 import math as m
-class Tree:
-    def __init__(self):
-        self.attribute = None
+class Node:
+    def __init__(self, att, val):
+        self.attribute = att
+        self.value = val
         self.left = None
         self.right = None
 
-class DecisionTree(Tree):
+class DecisionTree():
     def __init__(self):
         self.list_attributes = None
-        self.df = None
-        super(DecisionTree, self).__init__()
+        self.root = None
+
+    def fit(self, df):
+        self.root = self._fit(df)
 
     # need more optimization
-    def fit(self, df):
+    def _fit(self, df):
         list_RMI = []
         for a in list(df):
             values = df[a].unique()
             max_RMI = 0
             max_c = values[0]
             for c in values:
-                df['temp'] = 1 if df[a]<c else 2
+                df['temp'] = 1 if df[df[a]<c] else 2
                 sum = 0
                 total_count = df.shape[0]
                 for i in range(df.shape[0]):
@@ -37,3 +40,11 @@ class DecisionTree(Tree):
                     max_c = c
             list_RMI.append([max_RMI, a, max_c])
         list_RMI.sort(key=lambda x: x[0], reverse=True)
+        best_attr = list_RMI[0]
+        df1 = df[df[best_attr[1]] <= best_attr[2]]
+        df2 = df[df[best_attr[1]] > best_attr[2]]
+        n = Node(best_attr[1], best_attr[2])
+        if best_attr[0] > 0.1 and df1.shape[0] > 0 and df2.shape[0] > 0:
+            n.left = self.fit(df1)
+            n.right = self.fit(df2)
+        return n
