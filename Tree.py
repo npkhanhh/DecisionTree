@@ -22,19 +22,29 @@ class DecisionTree():
             max_RMI = 0
             max_c = values[0]
             for c in values:
-                df['temp'] = 1 if df[df[a]<c] else 2
+                df.loc[(df[a]<=c), 'temp'] = 1
+                df.loc[(df[a]>c), 'temp'] = 2
                 sum = 0
                 total_count = df.shape[0]
-                for i in range(df.shape[0]):
-                    attr = df['temp'][i]
-                    dec = df['DECISION'][i]
-                    attr_count = df[df['temp'] >= attr].shape[0]
-                    dec_count = df[df['DECISION'] >= dec].shape[0]
-                    both_count = df[df['temp'] >= attr & df['DECISION'] >= dec].shape[0]
-                    l = m.log((attr_count*dec_count)/(total_count*both_count))
-                    sum += l
-                sum = -sum
-                sum /= total_count
+                for i in [1, 2]:
+                    attr_count = df[df['temp'] >= i].shape[0]
+                    distinct_decision = df[df['temp'] == i]['DECISION'].unique()
+                    for j in distinct_decision:
+                        dec_count
+                # for i in range(df.shape[0]):
+                #     attr = df['temp'][i]
+                #     dec = df['DECISION'][i]
+                #     attr_count = df[df['temp'] >= attr].shape[0]
+                #     dec_count = df[df['DECISION'] >= dec].shape[0]
+                #     both_count = df[(df['temp'] >= attr) & (df['DECISION'] >= dec)].shape[0]
+                #     if total_count*both_count == 0 or attr_count*dec_count == 0:
+                #         l = 1
+                #     else:
+                #         l = m.log(float((attr_count*dec_count))/(total_count*both_count))
+                #     sum += l
+                #     print i
+                # sum = -sum
+                # sum /= total_count
                 if sum > max_RMI:
                     max_RMI = sum
                     max_c = c
@@ -45,6 +55,6 @@ class DecisionTree():
         df2 = df[df[best_attr[1]] > best_attr[2]]
         n = Node(best_attr[1], best_attr[2])
         if best_attr[0] > 0.1 and df1.shape[0] > 0 and df2.shape[0] > 0:
-            n.left = self.fit(df1)
-            n.right = self.fit(df2)
+            n.left = self._fit(df1)
+            n.right = self._fit(df2)
         return n
