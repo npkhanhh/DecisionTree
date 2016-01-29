@@ -28,9 +28,15 @@ def split(df):
 df = pd.read_csv('Car.csv', header=None, names=['BUYING','MAINT', 'DOORS', 'PERSON', 'LUGBOOT', 'SAFETY', 'CLASS'])
 rec = df.shape[0]
 df = data_cleaning(df)
-#df = shuffle(df)
-#df = split(df)
+df = shuffle(df)
+df = split(df)
+print type(df[0])
+
+# for row in df[0].iterrows():
+#     index, data = row
+#     print(data.tolist())
 t = dt()
-t.fit(df)
-print t
+t.fit(df[0])
+count = t.test(df[1])
+print count
 

@@ -96,3 +96,22 @@ class DecisionTree():
             n.label = count[len(count)/2][0]
 
         return n
+
+    def test(self, df):
+        count = 0
+        for row in df.iterrows():
+            index, data = row
+            rec = data.tolist()
+            if self._test(self.root, rec):
+                count+=1
+        return count
+
+    def _test(self, node, rec):
+        if node.label is not None:
+            return rec[-1] == node.label
+        else:
+            index = self.list_attributes.index(node.attribute)
+            if rec[index] <= node.value:
+                return self._test(node.left, rec)
+            else:
+                return self._test(node.right, rec)
