@@ -12,12 +12,14 @@ class DecisionTree():
         self.root = None
 
     def fit(self, df):
+        self.list_attributes = list(df)
+        del self.list_attributes[-1]
         self.root = self._fit(df)
 
     # need more optimization
     def _fit(self, df):
         list_RMI = []
-        for a in list(df):
+        for a in self.list_attributes:
             values = df[a].unique()
             max_RMI = 0
             max_c = values[0]
@@ -27,10 +29,17 @@ class DecisionTree():
                 sum = 0
                 total_count = df.shape[0]
                 for i in [1, 2]:
-                    attr_count = df[df['temp'] >= i].shape[0]
                     distinct_decision = df[df['temp'] == i]['DECISION'].unique()
                     for j in distinct_decision:
-                        dec_count
+                        group_count = df[(df['temp'] == i) & df['DECISION'] == j].shape[0]
+                        attr_count = df[df['temp'] >= i].shape[0]
+                        dec_count = df[df['DECISION'] >= j].shape[0]
+                        both_count = df[(df['temp'] >= i) & (df['DECISION'] >= j)].shape[0]
+                        l = m.log(float((attr_count*dec_count))/(total_count*both_count))
+                        l*=group_count
+                        sum+=l
+                sum = -sum
+                sum /= total_count
                 # for i in range(df.shape[0]):
                 #     attr = df['temp'][i]
                 #     dec = df['DECISION'][i]
@@ -49,12 +58,13 @@ class DecisionTree():
                     max_RMI = sum
                     max_c = c
             list_RMI.append([max_RMI, a, max_c])
+        df.drop(['temp'], axis = 1)
         list_RMI.sort(key=lambda x: x[0], reverse=True)
         best_attr = list_RMI[0]
         df1 = df[df[best_attr[1]] <= best_attr[2]]
         df2 = df[df[best_attr[1]] > best_attr[2]]
         n = Node(best_attr[1], best_attr[2])
-        if best_attr[0] > 0.1 and df1.shape[0] > 0 and df2.shape[0] > 0:
+        if best_attr[0] > 0.01 and df1.shape[0] > 0 and df2.shape[0] > 0:
             n.left = self._fit(df1)
             n.right = self._fit(df2)
         return n

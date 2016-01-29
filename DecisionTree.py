@@ -19,5 +19,5 @@ def data_cleaning():
 df2 = data_cleaning()
 t = dt()
 t.fit(df2)
-print df2.head()
+print t
 
