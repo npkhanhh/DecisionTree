@@ -3,7 +3,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-import pylab as pl
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from Tree import DecisionTree as dt
 
 
@@ -49,6 +50,19 @@ n = df[1].shape[0]
 df_draw = df[1].copy()
 df_draw = df_draw.drop(['DECISION'], axis = 1)
 X_R = pca.fit_transform(df_draw)
-print X_R
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+print(n)
+for i in range(n):
+    if count[i] == 1 and count2[i] == 1:
+        ax.scatter(X_R[i][0], X_R[i][1], X_R[i][2], c='#1AA130')
+    if count[i] == 0 and count2[i] == 1:
+        ax.scatter(X_R[i][0], X_R[i][1], X_R[i][2], c='r')
+    if count[i] == 1 and count2[i] == 0:
+        ax.scatter(X_R[i][0], X_R[i][1], X_R[i][2], c='b')
+    if count[i] == 0 and count2[i] == 0:
+        ax.scatter(X_R[i][0], X_R[i][1], X_R[i][2], c='k')
+
+plt.show()
 print sum(count), float(sum(count))/n, sum(count2), float(sum(count2))/n
 
