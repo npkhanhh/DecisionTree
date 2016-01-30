@@ -12,17 +12,20 @@ class DecisionTree():
         self.list_attributes = None
         self.root = None
 
-    def fit(self, df):
+    def fit(self, df, method = 'REMT'):
         self.list_attributes = list(df)
         del self.list_attributes[-1]
-        self.root = self._fit(df)
+        if method == 'REMT':
+            self.root = self._fit(df)
+        elif method == 'CART':
+            self.root = self._fit_classic(df)
 
     # need more optimization
     def _fit(self, df, parent = None):
         list_RMI = []
         for a in self.list_attributes:
             values = df[a].unique()
-            max_RMI = 0
+            max_RMI = 0 #TODO: Change this to have no sorting
             max_c = values[0]
             for c in values:
                 df.loc[(df[a]<=c), 'temp'] = 1
@@ -41,25 +44,11 @@ class DecisionTree():
                         sum+=l
                 sum = -sum
                 sum /= total_count
-                # for i in range(df.shape[0]):
-                #     attr = df['temp'][i]
-                #     dec = df['DECISION'][i]
-                #     attr_count = df[df['temp'] >= attr].shape[0]
-                #     dec_count = df[df['DECISION'] >= dec].shape[0]
-                #     both_count = df[(df['temp'] >= attr) & (df['DECISION'] >= dec)].shape[0]
-                #     if total_count*both_count == 0 or attr_count*dec_count == 0:
-                #         l = 1
-                #     else:
-                #         l = m.log(float((attr_count*dec_count))/(total_count*both_count))
-                #     sum += l
-                #     print i
-                # sum = -sum
-                # sum /= total_count
                 if sum > max_RMI:
                     max_RMI = sum
                     max_c = c
             list_RMI.append([max_RMI, a, max_c])
-        df.drop(['temp'], axis = 1)
+        df = df.drop(['temp'], axis = 1)
         list_RMI.sort(key=lambda x: x[0], reverse=True)
         best_attr = list_RMI[0]
         df1 = df[df[best_attr[1]] <= best_attr[2]]
@@ -82,29 +71,33 @@ class DecisionTree():
             right = False
 
 
-        if best_attr[0] > 0.1 and df1.shape[0] > 0 and df2.shape[0] > 0:
+        if best_attr[0] > 0.01 and df1.shape[0] > 0 and df2.shape[0] > 0:
             if left:
                 n.left = self._fit(df1, 'left')
             if right:
                 n.right = self._fit(df2, 'right')
-        elif best_attr[0] <= 0.1:
+        elif best_attr[0] <= 0.01:
             count = []
-            for i in range(len(class_df1)):
-                t = df1[df1['DECISION'] == class_df1[i]].shape[0]
-                count.append([class_df1[i], t])
-            count.sort(key=lambda x: x[1], reverse=True)
+            class_df = df['DECISION'].unique()
+            for i in range(len(class_df)):
+                t = df[df['DECISION'] == class_df[i]].shape[0]
+                count.append([class_df[i], t])
+            count.sort(key=lambda x: x[1])  #TODO: Find the median in case there is 2 or more
             n.label = count[len(count)/2][0]
 
         return n
 
     def test(self, df):
-        count = 0
+        n = df.shape[0]
+        result = [0] * n
+        i = 0
         for row in df.iterrows():
             index, data = row
             rec = data.tolist()
             if self._test(self.root, rec):
-                count+=1
-        return count
+                result[i] = 1
+            i+=1
+        return result
 
     def _test(self, node, rec):
         if node.label is not None:
@@ -115,3 +108,80 @@ class DecisionTree():
                 return self._test(node.left, rec)
             else:
                 return self._test(node.right, rec)
+
+    def _fit_classic(self, df):
+        distinct_decision = df['DECISION'].unique()
+        n = df.shape[0]
+        sum = 0
+        for de in distinct_decision:
+            count = df[df['DECISION']==de].shape[0]
+            sum -= (float(count)/n)*m.log(float(count)/n, 2)
+        entropy_before = sum
+        max_gain = 0
+        max_c = 0
+        max_a = None
+        for a in self.list_attributes:
+            values = df[a].unique()
+            for c in values:
+                df1 = df[df[a] <= c]
+                df2 = df[df[a] > c]
+
+                distinct_decision1 = df1['DECISION'].unique()
+                n1 = df1.shape[0]
+                entropy_left = 0
+                if n1>0:
+                    for de in distinct_decision1:
+                        count = df1[df1['DECISION']==de].shape[0]
+                        entropy_left -= (float(count)/n1)*m.log(float(count)/n1, 2)
+
+
+                distinct_decision2 = df2['DECISION'].unique()
+                n2 = df2.shape[0]
+                entropy_right = 0
+                if n2>0:
+                    for de in distinct_decision2:
+                        count = df2[df2['DECISION']==de].shape[0]
+                        entropy_right -= (float(count)/n2)*m.log(float(count)/n2, 2)
+
+
+                entropy_after = (float(n1)/n)*entropy_left + (float(n2)/n)*entropy_right
+                gain = entropy_before - entropy_after
+                if gain>max_gain:
+                    max_gain = gain
+                    max_c = c
+                    max_a = a
+        n = Node(max_a, max_c)
+        df1 = df[df[max_a] <= max_c]
+        df2 = df[df[max_a] > max_c]
+
+        class_df1 = df1['DECISION'].unique()
+        left = right = True
+        if len(class_df1) == 1:
+            n_left = Node()
+            n_left.label = class_df1[0]
+            n.left = n_left
+            left = False
+
+        class_df2 = df2['DECISION'].unique()
+        if len(class_df2) == 1:
+            n_right = Node()
+            n_right.label = class_df2[0]
+            n.right = n_right
+            right = False
+
+        if max_gain > 0.1 and df1.shape[0] > 0 and df2.shape[0] > 0:
+            if left:
+                n.left = self._fit_classic(df1)
+            if right:
+                n.right = self._fit_classic(df2)
+
+        if max_gain <= 0.1:
+            count = []
+            class_df = df['DECISION'].unique()
+            for i in range(len(class_df)):
+                t = df[df['DECISION'] == class_df[i]].shape[0]
+                count.append([class_df[i], t])
+            count.sort(key=lambda x: x[1])  #TODO: Find the median in case there is 2 or more
+            n.label = count[len(count)/2][0]
+
+        return n

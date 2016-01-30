@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
+import pylab as pl
 from Tree import DecisionTree as dt
 
 
@@ -37,6 +39,16 @@ print type(df[0])
 #     print(data.tolist())
 t = dt()
 t.fit(df[0])
+df[0] = df[0].drop(['temp'], axis = 1)
+t2 = dt()
+t2.fit(df[0], 'CART')
 count = t.test(df[1])
-print count
+count2 = t2.test(df[1])
+pca = PCA(n_components=3)
+n = df[1].shape[0]
+df_draw = df[1].copy()
+df_draw = df_draw.drop(['DECISION'], axis = 1)
+X_R = pca.fit_transform(df_draw)
+print X_R
+print sum(count), float(sum(count))/n, sum(count2), float(sum(count2))/n
 
