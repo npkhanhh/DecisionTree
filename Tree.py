@@ -11,6 +11,8 @@ class DecisionTree():
     def __init__(self):
         self.list_attributes = None
         self.root = None
+        self.epsilon_REMT = 0.05
+        self.epsilon_CART = 0.1
 
     def fit(self, df, method = 'REMT'):
         self.list_attributes = list(df)
@@ -22,11 +24,11 @@ class DecisionTree():
 
     # need more optimization
     def _fit(self, df, parent = None):
-        list_RMI = []
+        max_RMI = 0
+        max_c = -1
+        max_a = None
         for a in self.list_attributes:
             values = df[a].unique()
-            max_RMI = 0 #TODO: Change this to have no sorting
-            max_c = values[0]
             for c in values:
                 df.loc[(df[a]<=c), 'temp'] = 1
                 df.loc[(df[a]>c), 'temp'] = 2
@@ -47,15 +49,24 @@ class DecisionTree():
                 if sum > max_RMI:
                     max_RMI = sum
                     max_c = c
-            list_RMI.append([max_RMI, a, max_c])
+                    max_a = a
+
+        if max_a is None:
+            n = Node()
+            count = []
+            class_df = df['DECISION'].unique()
+            for i in range(len(class_df)):
+                t = df[df['DECISION'] == class_df[i]].shape[0]
+                count.append([class_df[i], t])
+            count.sort(key=lambda x: x[1])  #TODO: Find the median in case there is 2 or more
+            n.label = count[len(count)/2][0]
+
         df = df.drop(['temp'], axis = 1)
-        list_RMI.sort(key=lambda x: x[0], reverse=True)
-        best_attr = list_RMI[0]
-        df1 = df[df[best_attr[1]] <= best_attr[2]]
-        df2 = df[df[best_attr[1]] > best_attr[2]]
+        df1 = df[df[max_a] <= max_c]
+        df2 = df[df[max_a] > max_c]
 
         class_df1 = df1['DECISION'].unique()
-        n = Node(best_attr[1], best_attr[2])
+        n = Node(max_a, max_c)
         left = right = True
         if len(class_df1) == 1:
             n_left = Node()
@@ -71,12 +82,12 @@ class DecisionTree():
             right = False
 
 
-        if best_attr[0] > 0.01 and df1.shape[0] > 0 and df2.shape[0] > 0:
-            if left:
+        if max_RMI > self.epsilon_REMT:
+            if left and df1.shape[0] > 0:
                 n.left = self._fit(df1, 'left')
-            if right:
+            if right and df2.shape[0] > 0:
                 n.right = self._fit(df2, 'right')
-        elif best_attr[0] <= 0.01:
+        if max_RMI <= self.epsilon_REMT:
             count = []
             class_df = df['DECISION'].unique()
             for i in range(len(class_df)):
@@ -118,7 +129,7 @@ class DecisionTree():
             sum -= (float(count)/n)*m.log(float(count)/n, 2)
         entropy_before = sum
         max_gain = 0
-        max_c = 0
+        max_c = -1
         max_a = None
         for a in self.list_attributes:
             values = df[a].unique()
@@ -169,13 +180,13 @@ class DecisionTree():
             n.right = n_right
             right = False
 
-        if max_gain > 0.1 and df1.shape[0] > 0 and df2.shape[0] > 0:
+        if max_gain > self.epsilon_CART and df1.shape[0] > 0 and df2.shape[0] > 0:
             if left:
                 n.left = self._fit_classic(df1)
             if right:
                 n.right = self._fit_classic(df2)
 
-        if max_gain <= 0.1:
+        if max_gain <= self.epsilon_CART:
             count = []
             class_df = df['DECISION'].unique()
             for i in range(len(class_df)):

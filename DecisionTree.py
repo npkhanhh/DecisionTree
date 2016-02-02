@@ -33,7 +33,6 @@ rec = df.shape[0]
 df = data_cleaning(df)
 df = shuffle(df)
 df = split(df)
-print type(df[0])
 
 # for row in df[0].iterrows():
 #     index, data = row
