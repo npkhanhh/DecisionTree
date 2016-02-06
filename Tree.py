@@ -51,6 +51,8 @@ class DecisionTree():
                     max_c = c
                     max_a = a
 
+        df = df.drop(['temp'], axis = 1)
+
         if max_a is None:
             n = Node()
             count = []
@@ -60,8 +62,9 @@ class DecisionTree():
                 count.append([class_df[i], t])
             count.sort(key=lambda x: x[1])  #TODO: Find the median in case there is 2 or more
             n.label = count[len(count)/2][0]
+            return n
 
-        df = df.drop(['temp'], axis = 1)
+
         df1 = df[df[max_a] <= max_c]
         df2 = df[df[max_a] > max_c]
 
