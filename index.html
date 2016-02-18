@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<body>
+
+<div ng-app="myApp" ng-controller="myCtrl"> 
+
+<p>NewsId:<input type="text" name="newsid" id="newsid"></input><button ng-click="search()">Search</button></p>
+
+<p>{{content}}</p>
+
+<p><button ng-click="update()">Update</button></p>
+</div>
+
+<script>
+var app = angular.module('myApp', []);
+app.controller('myCtrl', function($scope, $http) {
+	$scope.search = function () {
+		var newsId = document.getElementById('newsid').value.trim();
+		$http.get("http://web-tintmdev.rhcloud.com/admin/news/search?newsid=" + newsId, {withCredentials : true})
+		  .then(function(response) {
+		  	$scope.news = angular.fromJson(response.data);
+		    $scope.content = response.data;
+		  });
+	}
+
+	$scope.update = function () {
+		var data = {
+			newsid : $scope.news.NewsId,
+			title : $scope.news.Title,
+			summary : $scope.news.Summary,
+			content : $scope.news.Content
+		}
+		$http.post("http://web-tintmdev.rhcloud.com/admin/news/update", data, {withCredentials : true})
+		  .then(function(response) {
+		      $scope.content = response.data;
+		  });
+	}
+});
+</script>
+
+</body>
+</html>
