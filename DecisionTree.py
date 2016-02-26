@@ -14,9 +14,9 @@ def split(df, k):
     df = np.array_split(df, k)
     return df
 
-k = 10
+k = 5
 
-df = pd.read_csv('Car_Processed.csv')
+df = pd.read_csv('Vote_Processed.csv')
 
 df = split(df, k)
 
@@ -45,7 +45,7 @@ for i in range(k):
 pca = PCA(n_components=3)
 n = df[1].shape[0]
 df_draw = df[1].copy()
-df_draw = df_draw.drop(['DECISION'], axis = 1)
+df_draw = df_draw.drop(['CLASS'], axis = 1)
 X_R = pca.fit_transform(df_draw)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
