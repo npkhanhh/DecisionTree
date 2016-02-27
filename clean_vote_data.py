@@ -28,7 +28,10 @@ df['C'].replace(['y', 'n'], [1, 2], inplace=True)
 df['DFE'].replace(['y', 'n'], [1, 2], inplace=True)
 df['EACSA'].replace(['y', 'n'], [1, 2], inplace=True)
 df['CLASS'].replace(['republican', 'democrat'], [1, 2], inplace=True)
+
 df.fillna(method='pad', inplace=True)
+df.fillna(method='bfill', inplace=True)
+
 
 df = shuffle(df)
 

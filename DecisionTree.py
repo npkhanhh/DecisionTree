@@ -14,7 +14,7 @@ def split(df, k):
     df = np.array_split(df, k)
     return df
 
-k = 5
+k = 10
 
 df = pd.read_csv('Vote_Processed.csv')
 
