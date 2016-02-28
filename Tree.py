@@ -27,20 +27,30 @@ class DecisionTree():
         max_RMI = 0
         max_c = -1
         max_a = None
+        #run through all attributes
         for a in self.list_attributes:
+            # get all unique values of attributes
             values = df[a].unique()
+            # for each value, split the data frame in half and set it to 1 and 2
             for c in values:
                 df.loc[(df[a]<=c), 'temp'] = 1
                 df.loc[(df[a]>c), 'temp'] = 2
+                #sum is RMI
                 sum = 0
+                #total count is |Ui|
                 total_count = df.shape[0]
                 for i in [1, 2]:
                     distinct_decision = df[df['temp'] == i]['CLASS'].unique()
                     for j in distinct_decision:
+
                         group_count = df[(df['temp'] == i) & df['CLASS'] == j].shape[0]
+                        #|[x]aj|
                         attr_count = df[df['temp'] >= i].shape[0]
+                        #|[x]D|
                         dec_count = df[df['CLASS'] >= j].shape[0]
+                        #|[x]aj ^ [x]D|
                         both_count = df[(df['temp'] >= i) & (df['CLASS'] >= j)].shape[0]
+                        #natural log
                         l = m.log(float((attr_count*dec_count))/(total_count*both_count))
                         l*=group_count
                         sum+=l
@@ -53,6 +63,7 @@ class DecisionTree():
 
         df = df.drop(['temp'], axis = 1)
 
+        #cannot find any relations
         if max_a is None:
             n = Node()
             count = []
@@ -64,7 +75,7 @@ class DecisionTree():
             n.label = count[len(count)/2][0]
             return n
 
-
+        #split the df into 2 to build the tree
         df1 = df[df[max_a] <= max_c]
         df2 = df[df[max_a] > max_c]
 
