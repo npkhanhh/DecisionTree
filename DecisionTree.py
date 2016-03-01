@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from Tree import DecisionTree as dt
 import copy
-
+import pylab as pl
 
 
 
@@ -36,11 +36,15 @@ count_cart = []
 
 no_sample = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60]
 no_class = 4
-test_set = df.copy(deep=True)
+
+avg_err_remt = []
+avg_err_cart = []
 for i in no_sample:
+    print i
     sum_remt = 0
     sum_cart = 0
     for j in range(k):
+        test_set = df.copy(deep=True)
         train_label = nprnd.randint(no_class, size = i)
         while len(set(train_label))<no_class:
             train_label = nprnd.randint(no_class, size = i)
@@ -52,15 +56,25 @@ for i in no_sample:
             test_set.drop(idx)
         
         remt_tree.fit(train_set)
-        count = remt_tree.test(test_set)
+        count_remt = remt_tree.test(test_set)
         cart_tree.fit(train_set)
-        count2 = cart_tree.test(test_set)
-        count count2
+        count_cart = cart_tree.test(test_set)
+        mae_remt = float(sum(count_remt))/test_set.shape[0]
+        mae_cart = float(sum(count_cart))/test_set.shape[0]
+        sum_remt += mae_remt
+        sum_cart += mae_cart
+        print j
+    avg_err_remt.append(float(sum_remt)/k)
+    avg_err_cart.append(float(sum_cart)/k)
+
     #for i in range(k):
     #print sum(count[i]), float(sum(count[i]))/len(count[i]), sum(count2[i]), float(sum(count2[i]))/len(count2[i])
 
-
-
+print avg_err_remt
+print avg_err_cart
+pl.plot(no_sample, avg_err_remt, '*')
+pl.plot(no_sample, avg_err_cart, '+')
+pl.show()
 
 #for i in range(k):
     # train_set = pd.concat(df[:i] + df[i+1:])

@@ -114,13 +114,13 @@ class DecisionTree():
 
     def test(self, df):
         n = df.shape[0]
-        result = [0] * n
+        result = [1] * n
         i = 0
         for row in df.iterrows():
             index, data = row
             rec = data.tolist()
             if self._test(self.root, rec):
-                result[i] = 1
+                result[i] = 0
             i+=1
         return result
 
